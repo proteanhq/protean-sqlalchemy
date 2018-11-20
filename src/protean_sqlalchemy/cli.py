@@ -6,11 +6,11 @@ Why does this file exist, and why not put this in __main__?
   You might be tempted to import things from __main__ later, but that will cause
   problems: the code will get executed twice:
 
-  - When you run `python -mprotean_elasticsearch` python will execute
+  - When you run `python -mprotean_sqlalchemy` python will execute
     ``__main__.py`` as a script. That means there won't be any
-    ``protean_elasticsearch.__main__`` in ``sys.modules``.
+    ``protean_sqlalchemy.__main__`` in ``sys.modules``.
   - When you import __main__ it will get executed again (as a module) because
-    there's no ``protean_elasticsearch.__main__`` in ``sys.modules``.
+    there's no ``protean_sqlalchemy.__main__`` in ``sys.modules``.
 
   Also see (1) from http://click.pocoo.org/5/setuptools/#setuptools-integration
 """

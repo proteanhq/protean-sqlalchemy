@@ -2,4 +2,4 @@
 Authors
 =======
 
-* Subhash Bhushan C - https://protean-elasticsearch.readthedocs.io/
+* Subhash Bhushan C - https://protean-sqlalchemy.readthedocs.io/
