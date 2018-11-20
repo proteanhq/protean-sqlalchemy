@@ -1,0 +1,16 @@
+[paths]
+source =
+   src/protean_sqlalchemy
+   */site-packages/protean_sqlalchemy
+
+[run]
+branch = true
+source =
+    protean_sqlalchemy
+    tests
+parallel = true
+
+[report]
+show_missing = true
+precision = 2
+omit = *migrations*
