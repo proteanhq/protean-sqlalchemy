@@ -64,7 +64,8 @@ setup(
     ],
     install_requires=[
         'click==6.7',
-        'protean==0.0.5'
+        'protean==0.0.5',
+        'sqlalchemy==1.2.14'
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
     ],
     extras_require={
