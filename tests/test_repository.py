@@ -14,8 +14,8 @@ from protean_sqlalchemy.repository import SqlalchemySchema, \
 class Dog(Entity):
     """This is a dummy Dog Entity class"""
     name = field.String(required=True, max_length=50, unique=True)
-    age = field.Integer(default=5)
     owner = field.String(required=True, max_length=15)
+    age = field.Integer(default=5)
 
     def __repr__(self):
         return f'<Dog id={self.id}>'
@@ -55,8 +55,8 @@ class TestConnectionHandler:
         assert list(resp) == []
 
 
-class TestElasticsearchRepository:
-    """Class to test Elasticsearch Repository"""
+class TestSqlalchemyRepository:
+    """Class to test Sqlalchemy Repository"""
 
     @classmethod
     def setup_class(cls):

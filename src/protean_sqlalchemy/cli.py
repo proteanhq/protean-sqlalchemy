@@ -16,8 +16,32 @@ Why does this file exist, and why not put this in __main__?
 """
 import click
 
+from protean.core.repository import repo_factory
 
-@click.command()
-@click.argument('names', nargs=-1)
-def main(names):
-    click.echo(repr(names))
+from protean_sqlalchemy.repository import SqlalchemySchema
+
+
+@click.group()
+def main():
+    """ Utility commands for the Protean Sqlalchemy package """
+    pass
+
+
+@main.command()
+def create_tables():
+    """ Command to create all tables for registered entities"""
+    click.echo('Creating all tables for registered entities')
+
+    # Create all the tables
+    for conn in repo_factory._connections.values():
+        SqlalchemySchema.metadata.create_all(conn.bind)
+
+
+@main.command()
+def drop_tables():
+    """ Command to drop all tables for registered entities"""
+    click.echo('Dropping all tables for registered entities')
+
+    # Create all the tables
+    for conn in repo_factory._connections.values():
+        SqlalchemySchema.metadata.drop_all(conn.bind)
