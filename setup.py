@@ -63,8 +63,8 @@ setup(
         # eg: 'keyword1', 'keyword2', 'keyword3',
     ],
     install_requires=[
-        'click==6.7',
-        'protean==0.0.5',
+        'click==7.0',
+        'protean==0.0.6',
         'sqlalchemy==1.2.14'
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
     ],
