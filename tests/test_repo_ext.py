@@ -6,10 +6,10 @@ from datetime import datetime
 from protean.core import field
 from protean.core.entity import Entity
 from protean.core.repository import repo_factory as rf
-from protean.core.exceptions import ValidationError
-from protean.conf import active_config
 
 from protean_sqlalchemy.repository import SqlalchemySchema
+
+from .test_repository import DogSchema
 
 
 class Human(Entity):
@@ -34,6 +34,7 @@ class HumanSchema(SqlalchemySchema):
         """ Meta class for schema options"""
         entity = Human
         schema_name = 'humans'
+        bind = 'another_db'
 
 
 class TestSqlalchemyRepositoryExt:
@@ -43,12 +44,11 @@ class TestSqlalchemyRepositoryExt:
     def setup_class(cls):
         """ Setup actions for this test case"""
         rf.register(HumanSchema)
-
-        # Save the current connection
-        cls.conn = rf._connections['default']
+        rf.register(DogSchema)
 
         # Create all the tables
-        SqlalchemySchema.metadata.create_all(cls.conn.bind)
+        for conn in rf._connections.values():
+            SqlalchemySchema.metadata.create_all(conn.bind)
 
     def test_create(self):
         """ Test creating an entity with all field types"""
@@ -78,3 +78,11 @@ class TestSqlalchemyRepositoryExt:
         human = rf.HumanSchema.get(1)
         assert human is not None
         assert human.to_dict() == expected
+
+    def test_multiple_dbs(self):
+        """ Test repository connections to multiple databases"""
+        humans = rf.HumanSchema.filter()
+        assert humans is not None
+
+        dogs = rf.DogSchema.filter()
+        assert dogs is not None

@@ -21,5 +21,9 @@ REPOSITORIES = {
     'default': {
         'PROVIDER': 'protean_sqlalchemy.repository',
         'DATABASE_URI': 'sqlite:///:memory:'
+    },
+    'another_db': {
+        'PROVIDER': 'protean_sqlalchemy.repository',
+        'DATABASE_URI': 'sqlite:///:memory:'
     }
 }
