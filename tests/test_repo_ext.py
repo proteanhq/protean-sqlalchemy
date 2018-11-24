@@ -5,7 +5,7 @@ from datetime import datetime
 
 from protean.core import field
 from protean.core.entity import Entity
-from protean.core.repository import repo_factory as rf
+from protean.core.repository import repo
 
 from protean_sqlalchemy.repository import SqlalchemySchema
 
@@ -43,18 +43,18 @@ class TestSqlalchemyRepositoryExt:
     @classmethod
     def setup_class(cls):
         """ Setup actions for this test case"""
-        rf.register(HumanSchema)
-        rf.register(DogSchema)
+        repo.register(HumanSchema)
+        repo.register(DogSchema)
 
         # Create all the tables
-        for conn in rf._connections.values():
+        for conn in repo.connections.values():
             SqlalchemySchema.metadata.create_all(conn.bind)
 
     def test_create(self):
         """ Test creating an entity with all field types"""
 
         # Create the entity and validate the results
-        human = rf.HumanSchema.create(
+        human = repo.HumanSchema.create(
             name='John Doe', age='30', weight='13.45',
             date_of_birth='01-01-2000',
             hobbies=['swimming'],
@@ -75,14 +75,14 @@ class TestSqlalchemyRepositoryExt:
         assert human.to_dict() == expected
 
         # Check if the object is in the repo
-        human = rf.HumanSchema.get(1)
+        human = repo.HumanSchema.get(1)
         assert human is not None
         assert human.to_dict() == expected
 
     def test_multiple_dbs(self):
         """ Test repository connections to multiple databases"""
-        humans = rf.HumanSchema.filter()
+        humans = repo.HumanSchema.filter()
         assert humans is not None
 
-        dogs = rf.DogSchema.filter()
+        dogs = repo.DogSchema.filter()
         assert dogs is not None

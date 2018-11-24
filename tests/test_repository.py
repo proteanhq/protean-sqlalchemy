@@ -3,7 +3,7 @@ import pytest
 
 from protean.core import field
 from protean.core.entity import Entity
-from protean.core.repository import repo_factory as rf
+from protean.core.repository import repo
 from protean.core.exceptions import ValidationError
 from protean.conf import active_config
 
@@ -61,10 +61,10 @@ class TestSqlalchemyRepository:
     @classmethod
     def setup_class(cls):
         """ Setup actions for this test case"""
-        rf.register(DogSchema)
+        repo.register(DogSchema)
 
         # Save the current connection
-        cls.conn = rf._connections['default']
+        cls.conn = repo.connections['default']
 
         # Create all the tables
         SqlalchemySchema.metadata.create_all(cls.conn.bind)
@@ -72,7 +72,7 @@ class TestSqlalchemyRepository:
     def test_create(self):
         """ Test creating an entity in the repository"""
         # Create the entity and validate the results
-        dog = rf.DogSchema.create(name='Johnny', owner='John')
+        dog = repo.DogSchema.create(name='Johnny', owner='John')
         assert dog is not None
         assert dog.id == 1
         assert dog.name == 'Johnny'
@@ -86,14 +86,14 @@ class TestSqlalchemyRepository:
 
         # Check for unique validation
         with pytest.raises(ValidationError) as e_info:
-            rf.DogSchema.create(name='Johnny', owner='John')
+            repo.DogSchema.create(name='Johnny', owner='John')
         assert e_info.value.normalized_messages == {
             'name': ['`dogs` with this `name` already exists.']}
 
     def test_update(self, mocker):
         """ Test updating an entity in the repository"""
         # Update the entity and validate the results
-        dog = rf.DogSchema.update(identifier=1, data=dict(age=7))
+        dog = repo.DogSchema.update(identifier=1, data=dict(age=7))
         assert dog is not None
         assert dog.age == 7
 
@@ -106,12 +106,12 @@ class TestSqlalchemyRepository:
 
     def test_filter(self, mocker):
         """ Test reading entities from the repository"""
-        rf.DogSchema.create(name='Cash', owner='John', age=10)
-        rf.DogSchema.create(name='Boxy', owner='Carry', age=4)
-        rf.DogSchema.create(name='Gooey', owner='John', age=2)
+        repo.DogSchema.create(name='Cash', owner='John', age=10)
+        repo.DogSchema.create(name='Boxy', owner='Carry', age=4)
+        repo.DogSchema.create(name='Gooey', owner='John', age=2)
 
         # Filter the entity and validate the results
-        dogs = rf.DogSchema.filter(page=1, per_page=15, order_by='-age',
+        dogs = repo.DogSchema.filter(page=1, per_page=15, order_by='-age',
                                    owner='John')
         assert dogs is not None
         assert dogs.total == 3
@@ -121,7 +121,7 @@ class TestSqlalchemyRepository:
     def test_delete(self):
         """ Test deleting an entity from the repository"""
         # Delete the entity and validate the results
-        cnt = rf.DogSchema.delete(1)
+        cnt = repo.DogSchema.delete(1)
         assert cnt == 1
 
         # Make sure that the entity is deleted
