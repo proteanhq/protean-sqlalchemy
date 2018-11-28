@@ -14,13 +14,14 @@ from .test_repository import DogSchema
 
 class Human(Entity):
     """This is a dummy Dog Entity class"""
-    name = field.String(required=True, max_length=50, unique=True)
+    name = field.StringMedium(required=True, unique=True)
     age = field.Integer()
     weight = field.Float()
     is_married = field.Boolean(default=True)
     date_of_birth = field.Date(required=True)
     hobbies = field.List()
     profile = field.Dict()
+    address = field.Text()
     created_at = field.DateTime(default=datetime.utcnow)
 
     def __repr__(self):
@@ -58,6 +59,7 @@ class TestSqlalchemyRepositoryExt:
             name='John Doe', age='30', weight='13.45',
             date_of_birth='01-01-2000',
             hobbies=['swimming'],
+            address='Address of the home of John Doe',
             profile={'phone': '90233143112', 'email': 'johndoe@domain.com'})
         assert human is not None
         expected = {
@@ -68,6 +70,7 @@ class TestSqlalchemyRepositoryExt:
             'is_married': True,
             'hobbies': ['swimming'],
             'profile': {'email': 'johndoe@domain.com', 'phone': '90233143112'},
+            'address': 'Address of the home of John Doe',
             'date_of_birth': datetime(2000, 1, 1).date(),
             'created_at': human.created_at
 

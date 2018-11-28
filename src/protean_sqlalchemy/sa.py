@@ -12,6 +12,7 @@ class DeclarativeMeta(sa_dec.DeclarativeMeta, OptionsMeta):
     field_mapping = {
         field.Auto: sa_types.Integer,
         field.String: sa_types.String,
+        field.Text: sa_types.Text,
         field.Boolean: sa_types.Boolean,
         field.Integer: sa_types.Integer,
         field.Float: sa_types.Float,
@@ -33,6 +34,10 @@ class DeclarativeMeta(sa_dec.DeclarativeMeta, OptionsMeta):
                     field_cls = type(field_obj)
                     sa_type_cls = cls.field_mapping.get(field_cls)
 
+                    # Default to the text type
+                    if not sa_type_cls:
+                        sa_type_cls = sa_types.String
+
                     # Build the column arguments
                     col_args = {
                         'primary_key': field_obj.identifier,
@@ -40,7 +45,13 @@ class DeclarativeMeta(sa_dec.DeclarativeMeta, OptionsMeta):
                         'unique': field_obj.unique
                     }
 
+                    # Update the arguments based on the field type
+                    type_args = {}
+                    if issubclass(field_cls, field.String):
+                        type_args['length'] = field_obj.max_length
+
                     # Update the attributes of the class
-                    setattr(cls, field_name, Column(sa_type_cls, **col_args))
+                    setattr(cls, field_name,
+                            Column(sa_type_cls(**type_args), **col_args))
 
         super().__init__(classname, bases, dict_)
