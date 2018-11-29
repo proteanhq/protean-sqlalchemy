@@ -9,6 +9,7 @@ from protean.conf import active_config
 
 from protean_sqlalchemy.repository import SqlalchemySchema, \
     ConnectionHandler
+from protean_sqlalchemy.utils import create_tables, drop_tables
 
 
 class Dog(Entity):
@@ -67,7 +68,14 @@ class TestSqlalchemyRepository:
         cls.conn = repo.connections['default']
 
         # Create all the tables
-        SqlalchemySchema.metadata.create_all(cls.conn.bind)
+        create_tables()
+
+    @classmethod
+    def teardown_class(cls):
+        """ Teardown actions for this test case"""
+
+        # Drop all the tables
+        drop_tables()
 
     def test_create(self):
         """ Test creating an entity in the repository"""

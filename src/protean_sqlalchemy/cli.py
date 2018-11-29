@@ -16,37 +16,8 @@ Why does this file exist, and why not put this in __main__?
 """
 import click
 
-from protean.conf import active_config
-from protean.core.repository import repo
-
-from protean_sqlalchemy.repository import SqlalchemySchema
-
 
 @click.group()
 def main():
     """ Utility commands for the Protean Sqlalchemy package """
     pass
-
-
-@main.command()
-def create_tables():
-    """ Command to create all tables for registered entities"""
-    click.echo('Creating all tables for registered entities')
-
-    # Create all the tables
-    for conn_name, conn in repo.connections.items():
-        if active_config['REPOSITORIES'][
-                conn_name]['PROVIDER'] == 'protean_sqlalchemy.repository':
-            SqlalchemySchema.metadata.create_all(conn.bind)
-
-
-@main.command()
-def drop_tables():
-    """ Command to drop all tables for registered entities"""
-    click.echo('Dropping all tables for registered entities')
-
-    # Delete all the tables
-    for conn_name, conn in repo.connections.items():
-        if active_config['REPOSITORIES'][
-                conn_name]['PROVIDER'] == 'protean_sqlalchemy.repository':
-            SqlalchemySchema.metadata.drop_all(conn.bind)

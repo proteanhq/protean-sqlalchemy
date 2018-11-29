@@ -7,7 +7,7 @@ by the PROTEAN_CONFIG environment variable.
 # CORE             #
 ####################
 
-DEBUG = False
+DEBUG = True
 
 # A secret key for this particular Protean installation. Used in secret-key
 # hashing algorithms.
