@@ -134,6 +134,10 @@ class TestSqlalchemyRepository:
                                      owner='John')
         assert dogs.total == 1
 
+        # Test for sql alchemy filter
+        dogs = repo.DogSchema.filter(filter_=(DogSchema.age > 8))
+        assert dogs.total == 1
+
     def test_delete(self):
         """ Test deleting an entity from the repository"""
         # Delete the entity and validate the results

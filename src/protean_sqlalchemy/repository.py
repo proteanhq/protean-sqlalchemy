@@ -63,6 +63,11 @@ class Repository(BaseRepository):
         """ Filter objects from the sqlalchemy database """
         qs = self.conn.query(self.schema_cls)
 
+        # check for sqlalchemy filters
+        filter_ = filters.pop('filter_', None)
+        if filter_ is not None:
+            qs = qs.filter(filter_)
+
         # apply the rest of the filters and excludes
         for fk, fv in filters.items():
             col = getattr(self.schema_cls, fk)
