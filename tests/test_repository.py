@@ -112,7 +112,7 @@ class TestSqlalchemyRepository:
         assert dog_db.name == 'Johnny'
         assert dog.age == 7
 
-    def test_filter(self, mocker):
+    def test_filter(self):
         """ Test reading entities from the repository"""
         repo.DogSchema.create(name='Cash', owner='John', age=10)
         repo.DogSchema.create(name='Boxy', owner='Carry', age=4)
@@ -120,11 +120,19 @@ class TestSqlalchemyRepository:
 
         # Filter the entity and validate the results
         dogs = repo.DogSchema.filter(page=1, per_page=15, order_by='-age',
-                                   owner='John')
+                                     owner='John')
         assert dogs is not None
         assert dogs.total == 3
         assert dogs.items[1].to_dict() == {
             'age': 10, 'id': 2, 'name': 'Cash', 'owner': 'John'}
+
+        # Test In and not in query
+        dogs = repo.DogSchema.filter(name=['Cash', 'Boxy'])
+        assert dogs.total == 2
+
+        dogs = repo.DogSchema.filter(excludes_=dict(name=['Cash', 'Gooey']),
+                                     owner='John')
+        assert dogs.total == 1
 
     def test_delete(self):
         """ Test deleting an entity from the repository"""

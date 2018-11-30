@@ -63,13 +63,20 @@ class Repository(BaseRepository):
         """ Filter objects from the sqlalchemy database """
         qs = self.conn.query(self.schema_cls)
 
-        # apply the filters and excludes
-        if filters:
-            qs = qs.filter_by(**filters)
+        # apply the rest of the filters and excludes
+        for fk, fv in filters.items():
+            col = getattr(self.schema_cls, fk)
+            if type(fv) in (list, tuple):
+                qs = qs.filter(col.in_(fv))
+            else:
+                qs = qs.filter(col == fv)
 
         for ek, ev in excludes_.items():
             col = getattr(self.schema_cls, ek)
-            qs = qs.filter(col != ev)
+            if type(ev) in (list, tuple):
+                qs = qs.filter(~col.in_(ev))
+            else:
+                qs = qs.filter(col != ev)
 
         # apply the ordering
         order_cols = []
