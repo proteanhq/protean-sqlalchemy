@@ -149,11 +149,16 @@ class TestSqlalchemyRepository:
         dog_db = self.conn.query(DogSchema).filter_by(id=1).first()
         assert dog_db is None
 
-    def test_database_errors(self):
-        """ Test that database errors are handled properly """
-        result = repo.DogSchema.filter(filter_=(DogSchema.age > 'x'))
-        print(result.items)
-        xx
+    def test_delete_all(self):
+        """ Test deleting all entries from the repository"""
+        # Delete the entity and validate the results
+        cnt = repo.DogSchema.filter().total
+        assert cnt == 3
+
+        # Delete all and make sure that the entity is deleted
+        repo.DogSchema.delete_all()
+        cnt = repo.DogSchema.filter().total
+        assert cnt == 0
 
     def test_close_connection(self):
         """ Test closing connection to the repository """

@@ -167,3 +167,7 @@ class Repository(BaseRepository):
             self.conn.rollback()
             raise
         return del_count
+
+    def delete_all(self):
+        """ Delete all records in this schema """
+        self._delete_objects()
