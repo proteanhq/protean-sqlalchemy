@@ -41,12 +41,12 @@ class TestConnectionHandler:
 
     def test_init(self):
         """Test Initialization of Sqlalchemy DB"""
-        ch = ConnectionHandler(self.repo_conf)
+        ch = ConnectionHandler('default', self.repo_conf)
         assert ch is not None
 
     def test_connection(self):
         """ Test the connection to the repository"""
-        ch = ConnectionHandler(self.repo_conf)
+        ch = ConnectionHandler('default', self.repo_conf)
         conn = ch.get_connection()
         assert conn is not None
 
@@ -148,3 +148,13 @@ class TestSqlalchemyRepository:
         # Check if the object is in the repo
         dog_db = self.conn.query(DogSchema).filter_by(id=1).first()
         assert dog_db is None
+
+    def test_database_errors(self):
+        """ Test that database errors are handled properly """
+        result = repo.DogSchema.filter(filter_=(DogSchema.age > 'x'))
+        print(result.items)
+        xx
+
+    def test_close_connection(self):
+        """ Test closing connection to the repository """
+        repo.close_connections()

@@ -2,6 +2,7 @@
 
 from sqlalchemy import orm
 from sqlalchemy import create_engine
+from sqlalchemy.exc import DatabaseError
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
@@ -15,7 +16,8 @@ from .sa import DeclarativeMeta
 class ConnectionHandler(BaseConnectionHandler):
     """Manage connections to the Sqlalchemy ORM"""
 
-    def __init__(self, conn_info: dict):
+    def __init__(self, conn_name: str, conn_info: dict):
+        self. conn_name = conn_name
         if not conn_info.get('DATABASE_URI'):
             raise ConfigurationError(
                 '`DATABASE_URI` setting must be defined for the repository.')
@@ -27,9 +29,14 @@ class ConnectionHandler(BaseConnectionHandler):
         engine = create_engine(make_url(self.conn_info['DATABASE_URI']))
 
         # Create the session
-        session_cls = orm.sessionmaker(bind=engine)
+        session_factory = orm.sessionmaker(bind=engine)
+        session_cls = orm.scoped_session(session_factory)
 
         return session_cls()
+
+    def close_connection(self, conn):
+        """ Close the connection to the Database instance """
+        conn.close()
 
 
 @as_declarative(metaclass=DeclarativeMeta)
@@ -94,26 +101,35 @@ class Repository(BaseRepository):
         qs.order_by(*order_cols)
 
         # apply limit and offset filters only if per_page is not None
-        if per_page is not None:
+        if per_page > 0:
             offset = (page - 1) * per_page
             qs = qs.limit(per_page).offset(offset)
 
         # Return the results
-        result = Pagination(
-            page=page,
-            per_page=per_page,
-            total=qs.count(),
-            items=qs.all())
+        try:
+            result = Pagination(
+                page=page,
+                per_page=per_page,
+                total=qs.count(),
+                items=qs.all())
+        except DatabaseError:
+            self.conn.rollback()
+            raise
+
         return result
 
     def _create_object(self, schema_obj):
         """ Add a new record to the sqlalchemy database"""
         self.conn.add(schema_obj)
 
-        # If the schema has Auto fields then flush to get them
-        if self.entity_cls.meta_.has_auto_field:
-            self.conn.flush()
-        self.conn.commit()
+        try:
+            # If the schema has Auto fields then flush to get them
+            if self.entity_cls.meta_.has_auto_field:
+                self.conn.flush()
+            self.conn.commit()
+        except DatabaseError:
+            self.conn.rollback()
+            raise
 
         return schema_obj
 
@@ -130,13 +146,24 @@ class Repository(BaseRepository):
                 data[field_name] = getattr(schema_obj, field_name, None)
 
         # Run the update query and commit the results
-        self.conn.query(self.schema_cls).filter_by(
-            **primary_key).update(data)
-        self.conn.commit()
+        try:
+            self.conn.query(self.schema_cls).filter_by(
+                **primary_key).update(data)
+            self.conn.commit()
+        except DatabaseError:
+            self.conn.rollback()
+            raise
 
         return schema_obj
 
     def _delete_objects(self, **filters):
         """ Delete a record from the sqlalchemy database"""
+        # Delete the objects and commit the results
         qs = self.conn.query(self.schema_cls)
-        return qs.filter_by(**filters).delete()
+        try:
+            del_count = qs.filter_by(**filters).delete()
+            self.conn.commit()
+        except DatabaseError:
+            self.conn.rollback()
+            raise
+        return del_count
