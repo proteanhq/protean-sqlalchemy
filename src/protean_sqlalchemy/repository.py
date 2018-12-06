@@ -98,7 +98,7 @@ class Repository(BaseRepository):
                 order_cols.append(col.desc())
             else:
                 order_cols.append(col)
-        qs.order_by(*order_cols)
+        qs = qs.order_by(*order_cols)
 
         # apply limit and offset filters only if per_page is not None
         if per_page > 0:

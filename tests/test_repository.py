@@ -123,8 +123,8 @@ class TestSqlalchemyRepository:
                                      owner='John')
         assert dogs is not None
         assert dogs.total == 3
-        assert dogs.items[1].to_dict() == {
-            'age': 10, 'id': 2, 'name': 'Cash', 'owner': 'John'}
+        dog_ages = [d.age for d in dogs.items]
+        assert dog_ages == [10, 7, 2]
 
         # Test In and not in query
         dogs = repo.DogSchema.filter(name=['Cash', 'Boxy'])
