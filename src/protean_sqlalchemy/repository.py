@@ -101,6 +101,7 @@ class Repository(BaseRepository):
         qs = qs.order_by(*order_cols)
 
         # apply limit and offset filters only if per_page is not None
+        total = qs.count()
         if per_page > 0:
             offset = (page - 1) * per_page
             qs = qs.limit(per_page).offset(offset)
@@ -110,7 +111,7 @@ class Repository(BaseRepository):
             result = Pagination(
                 page=page,
                 per_page=per_page,
-                total=qs.count(),
+                total=total,
                 items=qs.all())
         except DatabaseError:
             self.conn.rollback()
