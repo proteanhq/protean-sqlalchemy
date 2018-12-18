@@ -1,15 +1,14 @@
 """Module to test Repository Classes and Functionality"""
 import pytest
-
+from protean.conf import active_config
 from protean.core import field
 from protean.core.entity import Entity
-from protean.core.repository import repo
 from protean.core.exceptions import ValidationError
-from protean.conf import active_config
-
-from protean_sqlalchemy.repository import SqlalchemySchema, \
-    ConnectionHandler
-from protean_sqlalchemy.utils import create_tables, drop_tables
+from protean.core.repository import repo
+from protean_sqlalchemy.repository import ConnectionHandler
+from protean_sqlalchemy.repository import SqlalchemySchema
+from protean_sqlalchemy.utils import create_tables
+from protean_sqlalchemy.utils import drop_tables
 
 
 class Dog(Entity):

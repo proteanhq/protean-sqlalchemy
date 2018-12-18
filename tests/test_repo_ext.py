@@ -1,6 +1,4 @@
 """Module to test Repository extended functionality """
-import pytest
-
 from datetime import datetime
 
 from protean.core import field

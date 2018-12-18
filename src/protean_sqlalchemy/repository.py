@@ -1,14 +1,16 @@
 """This module holds the definition of Database connectivity"""
 
-from sqlalchemy import orm
+from protean.core.exceptions import ConfigurationError
+from protean.core.repository import BaseConnectionHandler
+from protean.core.repository import BaseSchema
+from protean.core.repository import BaseRepository
+from protean.core.repository import Pagination
 from sqlalchemy import create_engine
+from sqlalchemy import orm
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.engine.url import make_url
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
-
-from protean.core.repository import BaseConnectionHandler, BaseSchema, \
-    BaseRepository, Pagination
-from protean.core.exceptions import ConfigurationError
+from sqlalchemy.ext.declarative import as_declarative
+from sqlalchemy.ext.declarative import declared_attr
 
 from .sa import DeclarativeMeta
 
@@ -64,7 +66,7 @@ class SqlalchemySchema(BaseSchema):
 class Repository(BaseRepository):
     """Repository implementation for the Elasticsearch Database"""
 
-    def _filter_objects(self, page: int = 1, per_page: int = 10,
+    def _filter_objects(self, page: int = 1, per_page: int = 10,  # noqa: C901
                         order_by: list = (), excludes_: dict = None,
                         **filters) -> Pagination:
         """ Filter objects from the sqlalchemy database """

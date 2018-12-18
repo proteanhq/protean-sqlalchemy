@@ -2,4 +2,3 @@
 import os
 
 os.environ['PROTEAN_CONFIG'] = 'tests.support.sample_config'
-
