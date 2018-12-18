@@ -2,7 +2,6 @@
 from protean.core.repository import repo
 from sqlalchemy.orm.session import Session
 
-
 from protean_sqlalchemy.repository import SqlalchemySchema
 
 

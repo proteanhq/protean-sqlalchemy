@@ -2,13 +2,13 @@
 
 from protean.core.exceptions import ConfigurationError
 from protean.core.repository import BaseConnectionHandler
-from protean.core.repository import BaseSchema
 from protean.core.repository import BaseRepository
+from protean.core.repository import BaseSchema
 from protean.core.repository import Pagination
 from sqlalchemy import create_engine
 from sqlalchemy import orm
-from sqlalchemy.exc import DatabaseError
 from sqlalchemy.engine.url import make_url
+from sqlalchemy.exc import DatabaseError
 from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.ext.declarative import declared_attr
 

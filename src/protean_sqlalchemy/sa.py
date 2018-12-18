@@ -1,12 +1,12 @@
-""" Module for defining overriding functions of sqlalchemy """
+""" Module for defining overriding functions of sqlalchemy
+
+    isort:skip_file
+"""
 
 from protean.core import field
 from protean.utils.meta import OptionsMeta
-
-from sqlalchemy import types as Column
-from sqlalchemy import types as sa_types
+from sqlalchemy import types as sa_types, Column
 from sqlalchemy.ext import declarative as sa_dec
-
 
 
 class DeclarativeMeta(sa_dec.DeclarativeMeta, OptionsMeta):

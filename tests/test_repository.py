@@ -5,6 +5,7 @@ from protean.core import field
 from protean.core.entity import Entity
 from protean.core.exceptions import ValidationError
 from protean.core.repository import repo
+
 from protean_sqlalchemy.repository import ConnectionHandler
 from protean_sqlalchemy.repository import SqlalchemySchema
 from protean_sqlalchemy.utils import create_tables
