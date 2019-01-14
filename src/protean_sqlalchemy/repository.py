@@ -2,8 +2,8 @@
 
 from protean.core.exceptions import ConfigurationError
 from protean.core.repository import BaseConnectionHandler
-from protean.core.repository import BaseRepository
-from protean.core.repository import BaseSchema
+from protean.core.repository import BaseAdapter
+from protean.core.repository import BaseModel
 from protean.core.repository import Pagination
 from sqlalchemy import create_engine
 from sqlalchemy import orm
@@ -42,35 +42,35 @@ class ConnectionHandler(BaseConnectionHandler):
 
 
 @as_declarative(metaclass=DeclarativeMeta)
-class SqlalchemySchema(BaseSchema):
-    """Schema representation for the Sqlalchemy Database """
+class SqlalchemyModel(BaseModel):
+    """Model representation for the Sqlalchemy Database """
 
     @declared_attr
     def __tablename__(cls):
-        return cls.opts_.schema_name
+        return cls.opts_.model_name
 
     @classmethod
     def from_entity(cls, entity):
-        """ Convert the entity to a schema object """
+        """ Convert the entity to a model object """
         return cls(**entity.to_dict())
 
     @classmethod
-    def to_entity(cls, schema_obj):
-        """ Convert the schema object to an entity """
+    def to_entity(cls, model_obj):
+        """ Convert the model object to an entity """
         item_dict = {}
         for field_name in cls.opts_.entity_cls.meta_.declared_fields:
-            item_dict[field_name] = getattr(schema_obj, field_name, None)
+            item_dict[field_name] = getattr(model_obj, field_name, None)
         return cls.opts_.entity_cls(item_dict)
 
 
-class Repository(BaseRepository):
-    """Repository implementation for the Elasticsearch Database"""
+class Repository(BaseAdapter):
+    """Repository implementation for the Databases compliant with SQLAlchemy"""
 
     def _filter_objects(self, page: int = 1, per_page: int = 10,  # noqa: C901
                         order_by: list = (), excludes_: dict = None,
                         **filters) -> Pagination:
         """ Filter objects from the sqlalchemy database """
-        qs = self.conn.query(self.schema_cls)
+        qs = self.conn.query(self.model_cls)
 
         # check for sqlalchemy filters
         filter_ = filters.pop('filter_', None)
@@ -79,14 +79,14 @@ class Repository(BaseRepository):
 
         # apply the rest of the filters and excludes
         for fk, fv in filters.items():
-            col = getattr(self.schema_cls, fk)
+            col = getattr(self.model_cls, fk)
             if type(fv) in (list, tuple):
                 qs = qs.filter(col.in_(fv))
             else:
                 qs = qs.filter(col == fv)
 
         for ek, ev in excludes_.items():
-            col = getattr(self.schema_cls, ek)
+            col = getattr(self.model_cls, ek)
             if type(ev) in (list, tuple):
                 qs = qs.filter(~col.in_(ev))
             else:
@@ -95,7 +95,7 @@ class Repository(BaseRepository):
         # apply the ordering
         order_cols = []
         for order_col in order_by:
-            col = getattr(self.schema_cls, order_col.lstrip('-'))
+            col = getattr(self.model_cls, order_col.lstrip('-'))
             if order_col.startswith('-'):
                 order_cols.append(col.desc())
             else:
@@ -121,12 +121,12 @@ class Repository(BaseRepository):
 
         return result
 
-    def _create_object(self, schema_obj):
+    def _create_object(self, model_obj):
         """ Add a new record to the sqlalchemy database"""
-        self.conn.add(schema_obj)
+        self.conn.add(model_obj)
 
         try:
-            # If the schema has Auto fields then flush to get them
+            # If the model has Auto fields then flush to get them
             if self.entity_cls.meta_.has_auto_field:
                 self.conn.flush()
             self.conn.commit()
@@ -134,35 +134,35 @@ class Repository(BaseRepository):
             self.conn.rollback()
             raise
 
-        return schema_obj
+        return model_obj
 
-    def _update_object(self, schema_obj):
+    def _update_object(self, model_obj):
         """ Update a record in the sqlalchemy database"""
         primary_key, data = {}, {}
         for field_name, field_obj in \
                 self.entity_cls.meta_.declared_fields.items():
             if field_obj.identifier:
                 primary_key = {
-                    field_name: getattr(schema_obj, field_name)
+                    field_name: getattr(model_obj, field_name)
                 }
             else:
-                data[field_name] = getattr(schema_obj, field_name, None)
+                data[field_name] = getattr(model_obj, field_name, None)
 
         # Run the update query and commit the results
         try:
-            self.conn.query(self.schema_cls).filter_by(
+            self.conn.query(self.model_cls).filter_by(
                 **primary_key).update(data)
             self.conn.commit()
         except DatabaseError:
             self.conn.rollback()
             raise
 
-        return schema_obj
+        return model_obj
 
     def _delete_objects(self, **filters):
         """ Delete a record from the sqlalchemy database"""
         # Delete the objects and commit the results
-        qs = self.conn.query(self.schema_cls)
+        qs = self.conn.query(self.model_cls)
         try:
             del_count = qs.filter_by(**filters).delete()
             self.conn.commit()
@@ -172,5 +172,5 @@ class Repository(BaseRepository):
         return del_count
 
     def delete_all(self):
-        """ Delete all records in this schema """
+        """ Delete all records in this model """
         self._delete_objects()
