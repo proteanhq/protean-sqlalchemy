@@ -63,8 +63,8 @@ class SqlalchemyModel(BaseModel):
         return cls.opts_.entity_cls(item_dict)
 
 
-class Repository(BaseAdapter):
-    """Repository implementation for the Databases compliant with SQLAlchemy"""
+class Adapter(BaseAdapter):
+    """Adapter implementation for the Databases compliant with SQLAlchemy"""
 
     def _filter_objects(self, page: int = 1, per_page: int = 10,  # noqa: C901
                         order_by: list = (), excludes_: dict = None,
