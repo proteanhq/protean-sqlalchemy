@@ -3,11 +3,11 @@ from datetime import datetime
 
 from protean.core import field
 from protean.core.entity import Entity
-from protean.core.repository import repo
+from protean.core.repository import repo_factory
 
-from protean_sqlalchemy.repository import SqlalchemySchema
+from protean_sqlalchemy.repository import SqlalchemyModel
 
-from .test_repository import DogSchema
+from .test_repository import DogModel
 
 
 class Human(Entity):
@@ -26,13 +26,13 @@ class Human(Entity):
         return f'<Human id={self.id}>'
 
 
-class HumanSchema(SqlalchemySchema):
-    """ Schema for the Human Entity"""
+class HumanModel(SqlalchemyModel):
+    """Model for the Human Entity"""
 
     class Meta:
-        """ Meta class for schema options"""
+        """ Meta class for model options"""
         entity = Human
-        schema_name = 'humans'
+        model_name = 'humans'
         bind = 'another_db'
 
 
@@ -42,18 +42,18 @@ class TestSqlalchemyRepositoryExt:
     @classmethod
     def setup_class(cls):
         """ Setup actions for this test case"""
-        repo.register(HumanSchema)
-        repo.register(DogSchema)
+        repo_factory.register(HumanModel)
+        repo_factory.register(DogModel)
 
         # Create all the tables
-        for conn in repo.connections.values():
-            SqlalchemySchema.metadata.create_all(conn.bind)
+        for conn in repo_factory.connections.values():
+            SqlalchemyModel.metadata.create_all(conn.bind)
 
     def test_create(self):
         """ Test creating an entity with all field types"""
 
         # Create the entity and validate the results
-        human = repo.HumanSchema.create(
+        human = repo_factory.HumanModel.create(
             name='John Doe', age='30', weight='13.45',
             date_of_birth='01-01-2000',
             hobbies=['swimming'],
@@ -76,14 +76,14 @@ class TestSqlalchemyRepositoryExt:
         assert human.to_dict() == expected
 
         # Check if the object is in the repo
-        human = repo.HumanSchema.get(1)
+        human = repo_factory.HumanModel.get(1)
         assert human is not None
         assert human.to_dict() == expected
 
     def test_multiple_dbs(self):
         """ Test repository connections to multiple databases"""
-        humans = repo.HumanSchema.filter()
+        humans = repo_factory.HumanModel.filter()
         assert humans is not None
 
-        dogs = repo.DogSchema.filter()
+        dogs = repo_factory.DogModel.filter()
         assert dogs is not None
