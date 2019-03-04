@@ -7,7 +7,7 @@ from protean.core.repository import repo_factory
 
 from protean_sqlalchemy.repository import SqlalchemyModel
 
-from .test_repository import DogModel
+from .test_repository import Dog, DogModel
 
 
 class Human(Entity):
@@ -53,7 +53,7 @@ class TestSqlalchemyRepositoryExt:
         """ Test creating an entity with all field types"""
 
         # Create the entity and validate the results
-        human = repo_factory.HumanModel.create(
+        human = Human.create(
             name='John Doe', age='30', weight='13.45',
             date_of_birth='01-01-2000',
             hobbies=['swimming'],
@@ -76,14 +76,14 @@ class TestSqlalchemyRepositoryExt:
         assert human.to_dict() == expected
 
         # Check if the object is in the repo
-        human = repo_factory.HumanModel.get(1)
+        human = Human.get(1)
         assert human is not None
         assert human.to_dict() == expected
 
     def test_multiple_dbs(self):
         """ Test repository connections to multiple databases"""
-        humans = repo_factory.HumanModel.filter()
+        humans = Human.filter()
         assert humans is not None
 
-        dogs = repo_factory.DogModel.filter()
+        dogs = Dog.filter()
         assert dogs is not None
