@@ -7,7 +7,8 @@ from protean.core.repository import repo_factory
 
 from protean_sqlalchemy.repository import SqlalchemyModel
 
-from .test_repository import Dog, DogModel
+from .test_repository import Dog
+from .test_repository import DogModel
 
 
 class Human(Entity):
