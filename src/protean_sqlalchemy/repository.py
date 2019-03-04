@@ -5,6 +5,7 @@ from protean.core.repository import BaseConnectionHandler
 from protean.core.repository import BaseAdapter
 from protean.core.repository import BaseModel
 from protean.core.repository import Pagination
+
 from sqlalchemy import create_engine
 from sqlalchemy import orm
 from sqlalchemy.engine.url import make_url
@@ -103,13 +104,13 @@ class Adapter(BaseAdapter):
         qs = qs.order_by(*order_cols)
 
         # apply limit and offset filters only if per_page is not None
-        total = qs.count()
         if per_page > 0:
             offset = (page - 1) * per_page
             qs = qs.limit(per_page).offset(offset)
 
         # Return the results
         try:
+            total = qs.count()
             result = Pagination(
                 page=page,
                 per_page=per_page,
@@ -170,7 +171,3 @@ class Adapter(BaseAdapter):
             self.conn.rollback()
             raise
         return del_count
-
-    def delete_all(self):
-        """ Delete all records in this model """
-        self._delete_objects()
