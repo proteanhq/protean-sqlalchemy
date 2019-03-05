@@ -83,8 +83,8 @@ class TestSqlalchemyRepositoryExt:
 
     def test_multiple_dbs(self):
         """ Test repository connections to multiple databases"""
-        humans = Human.filter()
+        humans = Human.query.filter().all()
         assert humans is not None
 
-        dogs = Dog.filter()
+        dogs = Dog.query.filter().all()
         assert dogs is not None

@@ -6,7 +6,6 @@ from protean.core import field
 from protean.core.entity import Entity
 from protean.core.exceptions import ValidationError
 from protean.core.repository import repo_factory
-from protean.utils.query import Q
 
 from protean_sqlalchemy.repository import ConnectionHandler
 from protean_sqlalchemy.repository import SqlalchemyModel
@@ -115,23 +114,17 @@ class TestSqlalchemyRepository:
         assert dog_db.name == 'Johnny'
         assert dog.age == 7
 
-    def xtest_filter(self):
+    def test_filter(self):
         """ Test reading entities from the repository"""
         Dog.create(name='Cash', owner='John', age=10)
         Dog.create(name='Boxy', owner='Carry', age=4)
         Dog.create(name='Gooey', owner='John', age=2)
-
-        # dogs = Dog.query.filter().\
-        #     paginate(page=1, per_page=15).\
-        #     order_by(['-age']).all()
 
         # Filter the entity and validate the results
         dogs = Dog.query.filter(owner='John').\
             paginate(page=1, per_page=15).\
             order_by(['-age']).all()
 
-        # Dog.query.filter((Q(owner='John') | (Q(age=3) & Q(owner='Carry'))), Q(name='Jean')).all()
-        # sss
         assert dogs is not None
         assert dogs.total == 3
         dog_ages = [d.age for d in dogs.items]
@@ -144,11 +137,7 @@ class TestSqlalchemyRepository:
         dogs = Dog.query.filter(owner='John').exclude(name__in=['Cash', 'Gooey'])
         assert dogs.total == 1
 
-        # Test for sql alchemy filter
-        # dogs = Dog.query.filter(filter_=(DogModel.age > 8))
-        # assert dogs.total == 1
-
-    def xtest_delete(self):
+    def test_delete(self):
         """ Test deleting an entity from the repository"""
         # Delete the entity and validate the results
         dog = Dog.get(1)

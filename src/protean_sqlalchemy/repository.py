@@ -84,7 +84,10 @@ class Adapter(BaseAdapter):
 
                 # Instantiate the lookup class and get the expression
                 lookup = lookup_class(stripped_key, child[1], self.model_cls)
-                params.append(lookup.as_expression())
+                if criteria.negated:
+                    params.append(~lookup.as_expression())
+                else:
+                    params.append(lookup.as_expression())
 
         return func(*params)
 
@@ -183,13 +186,15 @@ operators = {
     'iexact': 'ilike',
     'contains': 'contains',
     'icontains': 'ilike',
+    'startswith': 'startswith',
+    'endswith': 'endswith',
     'gt': '__gt__',
     'gte': '__ge__',
     'lt': '__lt__',
     'lte': '__le__',
     'in': 'in_',
-    'startswith': 'startswith',
-    'endswith': 'endswith',
+    'overlap': 'overlap',
+    'any': 'any',
 }
 
 
@@ -246,6 +251,18 @@ class IContains(DefaultLookup):
 
 
 @Adapter.register_lookup
+class Startswith(DefaultLookup):
+    """Exact Contains Query"""
+    lookup_name = 'startswith'
+
+
+@Adapter.register_lookup
+class Endswith(DefaultLookup):
+    """Exact Contains Query"""
+    lookup_name = 'endswith'
+
+
+@Adapter.register_lookup
 class GreaterThan(DefaultLookup):
     """Greater than Query"""
     lookup_name = 'gt'
@@ -271,6 +288,28 @@ class LessThanOrEqual(DefaultLookup):
 
 @Adapter.register_lookup
 class In(DefaultLookup):
+    """In Query"""
+    lookup_name = 'in'
+
+    def process_target(self):
+        """Ensure target is a list or tuple"""
+        assert type(self.target) in (list, tuple)
+        return super().process_target()
+
+
+@Adapter.register_lookup
+class Overlap(DefaultLookup):
+    """In Query"""
+    lookup_name = 'in'
+
+    def process_target(self):
+        """Ensure target is a list or tuple"""
+        assert type(self.target) in (list, tuple)
+        return super().process_target()
+
+
+@Adapter.register_lookup
+class Any(DefaultLookup):
     """In Query"""
     lookup_name = 'in'
 
