@@ -1,4 +1,4 @@
-protean==0.0.7
+protean==0.0.8
 click==7.0
 sqlalchemy==1.2.14
 -r requirements/dev.txt

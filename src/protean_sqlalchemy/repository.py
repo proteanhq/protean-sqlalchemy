@@ -5,8 +5,11 @@ from protean.core.repository import BaseAdapter
 from protean.core.repository import BaseConnectionHandler
 from protean.core.repository import BaseModel
 from protean.core.repository import Pagination
+from protean.core.repository import Lookup
+from protean.utils.query import Q
+
 from sqlalchemy import create_engine
-from sqlalchemy import orm
+from sqlalchemy import orm, and_, or_
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.ext.declarative import as_declarative
@@ -58,7 +61,7 @@ class SqlalchemyModel(BaseModel):
     def to_entity(cls, model_obj):
         """ Convert the model object to an entity """
         item_dict = {}
-        for field_name in cls.opts_.entity_cls.meta_.declared_fields:
+        for field_name in cls.opts_.entity_cls.declared_fields:
             item_dict[field_name] = getattr(model_obj, field_name, None)
         return cls.opts_.entity_cls(item_dict)
 
@@ -66,33 +69,35 @@ class SqlalchemyModel(BaseModel):
 class Adapter(BaseAdapter):
     """Adapter implementation for the Databases compliant with SQLAlchemy"""
 
-    def _filter_objects(self, page: int = 1, per_page: int = 10,  # noqa: C901
-                        order_by: list = (), excludes_: dict = None,
-                        **filters) -> Pagination:
+    def _build_filters(self, criteria: Q):
+        """ Recursively Build the filters from the criteria object"""
+        # Decide the function based on the connector type
+        func = and_ if criteria.connector == criteria.AND else or_
+        params = []
+        for child in criteria.children:
+            if isinstance(child, Q):
+                # Call the function again with the child
+                params.append(self._build_filters(child))
+            else:
+                # Find the lookup class and the key
+                stripped_key, lookup_class = self._extract_lookup(child[0])
+
+                # Instantiate the lookup class and get the expression
+                lookup = lookup_class(stripped_key, child[1], self.model_cls)
+                params.append(lookup.as_expression())
+
+        return func(*params)
+
+    def _filter_objects(self, criteria: Q, page: int = 1, per_page: int = 10,
+                        order_by: list = ()) -> Pagination:
         """ Filter objects from the sqlalchemy database """
         qs = self.conn.query(self.model_cls)
 
-        # check for sqlalchemy filters
-        filter_ = filters.pop('filter_', None)
-        if filter_ is not None:
-            qs = qs.filter(filter_)
+        # Build the filters from the criteria
+        if criteria.children:
+            qs = qs.filter(self._build_filters(criteria))
 
-        # apply the rest of the filters and excludes
-        for fk, fv in filters.items():
-            col = getattr(self.model_cls, fk)
-            if type(fv) in (list, tuple):
-                qs = qs.filter(col.in_(fv))
-            else:
-                qs = qs.filter(col == fv)
-
-        for ek, ev in excludes_.items():
-            col = getattr(self.model_cls, ek)
-            if type(ev) in (list, tuple):
-                qs = qs.filter(~col.in_(ev))
-            else:
-                qs = qs.filter(col != ev)
-
-        # apply the ordering
+        # Apply the order by clause if present
         order_cols = []
         for order_col in order_by:
             col = getattr(self.model_cls, order_col.lstrip('-'))
@@ -109,12 +114,13 @@ class Adapter(BaseAdapter):
 
         # Return the results
         try:
-            total = qs.count()
+            items = qs.all()
+            total = qs.count() if per_page > 0 else len(items)
             result = Pagination(
                 page=page,
                 per_page=per_page,
                 total=total,
-                items=qs.all())
+                items=items)
         except DatabaseError:
             self.conn.rollback()
             raise
@@ -127,7 +133,7 @@ class Adapter(BaseAdapter):
 
         try:
             # If the model has Auto fields then flush to get them
-            if self.entity_cls.meta_.has_auto_field:
+            if self.entity_cls.auto_fields:
                 self.conn.flush()
             self.conn.commit()
         except DatabaseError:
@@ -140,7 +146,7 @@ class Adapter(BaseAdapter):
         """ Update a record in the sqlalchemy database"""
         primary_key, data = {}, {}
         for field_name, field_obj in \
-                self.entity_cls.meta_.declared_fields.items():
+                self.entity_cls.declared_fields.items():
             if field_obj.identifier:
                 primary_key = {
                     field_name: getattr(model_obj, field_name)
@@ -170,3 +176,105 @@ class Adapter(BaseAdapter):
             self.conn.rollback()
             raise
         return del_count
+
+
+operators = {
+    'exact': '__eq__',
+    'iexact': 'ilike',
+    'contains': 'contains',
+    'icontains': 'ilike',
+    'gt': '__gt__',
+    'gte': '__ge__',
+    'lt': '__lt__',
+    'lte': '__le__',
+    'in': 'in_',
+    'startswith': 'startswith',
+    'endswith': 'endswith',
+}
+
+
+class DefaultLookup(Lookup):
+    """Base class with default implementation of expression construction"""
+
+    def __init__(self, source, target, model_cls):
+        """Source is LHS and Target is RHS of a comparsion"""
+        self.model_cls = model_cls
+        super().__init__(source, target)
+
+    def process_source(self):
+        """Return source with transformations, if any"""
+        source_col = getattr(self.model_cls, self.source)
+        return source_col
+
+    def process_target(self):
+        """Return target with transformations, if any"""
+        return self.target
+
+    def as_expression(self):
+        lookup_func = getattr(self.process_source(),
+                              operators[self.lookup_name])
+        return lookup_func(self.process_target())
+
+
+@Adapter.register_lookup
+class Exact(DefaultLookup):
+    """Exact Match Query"""
+    lookup_name = 'exact'
+
+
+@Adapter.register_lookup
+class IExact(DefaultLookup):
+    """Exact Case-Insensitive Match Query"""
+    lookup_name = 'iexact'
+
+
+@Adapter.register_lookup
+class Contains(DefaultLookup):
+    """Exact Contains Query"""
+    lookup_name = 'contains'
+
+
+@Adapter.register_lookup
+class IContains(DefaultLookup):
+    """Exact Case-Insensitive Contains Query"""
+    lookup_name = 'icontains'
+
+    def process_target(self):
+        """Return target in lowercase"""
+        assert isinstance(self.target, str)
+        return f"%{super().process_target()}%"
+
+
+@Adapter.register_lookup
+class GreaterThan(DefaultLookup):
+    """Greater than Query"""
+    lookup_name = 'gt'
+
+
+@Adapter.register_lookup
+class GreaterThanOrEqual(DefaultLookup):
+    """Greater than or Equal Query"""
+    lookup_name = 'gte'
+
+
+@Adapter.register_lookup
+class LessThan(DefaultLookup):
+    """Less than Query"""
+    lookup_name = 'lt'
+
+
+@Adapter.register_lookup
+class LessThanOrEqual(DefaultLookup):
+    """Less than or Equal Query"""
+    lookup_name = 'lte'
+
+
+@Adapter.register_lookup
+class In(DefaultLookup):
+    """In Query"""
+    lookup_name = 'in'
+
+    def process_target(self):
+        """Ensure target is a list or tuple"""
+        assert type(self.target) in (list, tuple)
+        return super().process_target()

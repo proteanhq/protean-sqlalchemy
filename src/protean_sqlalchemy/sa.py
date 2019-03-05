@@ -28,7 +28,7 @@ class DeclarativeMeta(sa_dec.DeclarativeMeta, OptionsMeta):
         # Update the class attrs with the entity attributes
         if cls.__dict__.get('opts_'):
             entity_cls = cls.__dict__['opts_'].entity_cls
-            for field_name, field_obj in entity_cls.meta_.\
+            for field_name, field_obj in entity_cls.\
                     declared_fields.items():
 
                 # Map the field if not in attributes
