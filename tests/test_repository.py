@@ -149,6 +149,6 @@ class TestSqlalchemyRepository:
         dog_db = self.conn.query(DogModel).filter_by(id=1).first()
         assert dog_db is None
 
-    def xtest_close_connection(self):
+    def test_close_connection(self):
         """ Test closing connection to the repository """
         repo_factory.close_connections()

@@ -2,6 +2,7 @@
 from datetime import datetime
 
 from protean.core.repository import repo_factory
+from protean.utils.query import Q
 
 from protean_sqlalchemy.repository import SqlalchemyModel
 from protean_sqlalchemy.utils import drop_tables
@@ -155,3 +156,39 @@ class TestFiltersLookups:
         assert humans is not None
         assert humans.total == 2
         assert humans[0].id == self.humans[0].id
+
+    def test_q_filters(self):
+        """ Test that complex filtering using the Q object"""
+
+        # Filter by 2 conditions
+        humans = Human.query.filter(Q(name__contains='Doe') & Q(age__gt=28))
+        assert humans is not None
+        assert humans.total == 1
+        assert humans[0].id == self.humans[0].id
+
+        # Try the same with negation
+        humans = Human.query.filter(~Q(name__contains='Doe') & Q(age__gt=28))
+        assert humans is not None
+        assert humans.total == 1
+        assert humans[0].id == self.humans[2].id
+
+        # Try with basic or
+        humans = Human.query.filter(Q(name__contains='Doe') | Q(age__gt=28))
+        assert humans is not None
+        assert humans.total == 3
+        assert humans[0].id == self.humans[0].id
+
+        # Try combination of and and or
+        humans = Human.query.filter(Q(age__gte=27) | Q(weight__gt=15),
+                                    name__contains='Doe')
+        assert humans is not None
+        assert humans.total == 2
+        assert humans[0].id == self.humans[0].id
+
+        # Try combination of and and or
+        humans = Human.query.filter(
+            (Q(weight__lte=20) | (Q(age__gt=30) & Q(name__endswith='Manning'))),
+            Q(date_of_birth__gt='1994-01-01'))
+        assert humans is not None
+        assert humans.total == 1
+        assert humans[0].id == self.humans[1].id
