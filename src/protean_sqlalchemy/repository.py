@@ -6,6 +6,7 @@ from protean.core.repository import BaseConnectionHandler
 from protean.core.repository import BaseModel
 from protean.core.repository import Pagination
 from protean.core.repository import Lookup
+from protean.core import field
 from protean.utils.query import Q
 
 from sqlalchemy import create_engine
@@ -55,7 +56,15 @@ class SqlalchemyModel(BaseModel):
     @classmethod
     def from_entity(cls, entity):
         """ Convert the entity to a model object """
-        return cls(**entity.to_dict())
+        item_dict = {}
+        for field_obj in cls.opts_.entity_cls.declared_fields.values():
+            if isinstance(field_obj, field.Reference):
+                item_dict[field_obj.relation.field_name] = \
+                    field_obj.relation.value
+            else:
+                item_dict[field_obj.field_name] = getattr(
+                    entity, field_obj.field_name)
+        return cls(**item_dict)
 
     @classmethod
     def to_entity(cls, model_obj):
@@ -155,7 +164,11 @@ class Adapter(BaseAdapter):
                     field_name: getattr(model_obj, field_name)
                 }
             else:
-                data[field_name] = getattr(model_obj, field_name, None)
+                if isinstance(field_obj, field.Reference):
+                    data[field_obj.relation.field_name] = \
+                        field_obj.relation.value
+                else:
+                    data[field_name] = getattr(model_obj, field_name, None)
 
         # Run the update query and commit the results
         try:

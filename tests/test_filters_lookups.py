@@ -7,8 +7,7 @@ from protean.utils.query import Q
 from protean_sqlalchemy.repository import SqlalchemyModel
 from protean_sqlalchemy.utils import drop_tables
 
-from .test_repository import DogModel
-from .test_repo_ext import HumanModel, Human
+from .support.human import Human, HumanModel
 
 
 class TestFiltersLookups:
@@ -18,7 +17,6 @@ class TestFiltersLookups:
     def setup_class(cls):
         """ Setup actions for this test case"""
         repo_factory.register(HumanModel)
-        repo_factory.register(DogModel)
 
         # Create all the tables
         for conn in repo_factory.connections.values():

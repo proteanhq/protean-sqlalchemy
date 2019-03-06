@@ -4,12 +4,14 @@
 """
 
 from protean.core import field
-from protean.utils.meta import OptionsMeta
+from protean.core.repository.base import BaseModelMeta
+from protean.core.repository import repo_factory
+
 from sqlalchemy import types as sa_types, Column
 from sqlalchemy.ext import declarative as sa_dec
 
 
-class DeclarativeMeta(sa_dec.DeclarativeMeta, OptionsMeta):
+class DeclarativeMeta(sa_dec.DeclarativeMeta, BaseModelMeta):
     """ Metaclass for the Sqlalchemy declarative schema """
     field_mapping = {
         field.Auto: sa_types.Integer,
@@ -34,9 +36,19 @@ class DeclarativeMeta(sa_dec.DeclarativeMeta, OptionsMeta):
                 # Map the field if not in attributes
                 if field_name not in cls.__dict__:
                     field_cls = type(field_obj)
-                    sa_type_cls = cls.field_mapping.get(field_cls)
+                    if field_cls == field.Reference:
+                        related_ent = repo_factory.get_entity(field_obj.to_cls)
+                        if field_obj.via:
+                            related_attr = getattr(
+                                related_ent, field_obj.via)
+                        else:
+                            related_attr = related_ent.id_field
+                        field_name = field_obj.get_attribute_name()
+                        field_cls = type(related_attr)
 
-                    # Default to the text type
+                    # Get the SA type and default to the text type if no
+                    # mapping is found
+                    sa_type_cls = cls.field_mapping.get(field_cls)
                     if not sa_type_cls:
                         sa_type_cls = sa_types.String
 
@@ -55,5 +67,4 @@ class DeclarativeMeta(sa_dec.DeclarativeMeta, OptionsMeta):
                     # Update the attributes of the class
                     setattr(cls, field_name,
                             Column(sa_type_cls(**type_args), **col_args))
-
         super().__init__(classname, bases, dict_)
