@@ -28,7 +28,7 @@ def read(*names, **kwargs):
 
 setup(
     name='protean-sqlalchemy',
-    version='0.0.7',
+    version='0.0.9',
     license='BSD 3-Clause License',
     description='Protean Sqlalachemy Extension',
     long_description='%s\n%s' % (
@@ -64,7 +64,7 @@ setup(
     ],
     install_requires=[
         'click==7.0',
-        'protean==0.0.7',
+        'protean==0.0.9',
         'sqlalchemy==1.2.14'
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
     ],
