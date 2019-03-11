@@ -5,8 +5,10 @@ from protean.core.repository import repo_factory
 
 from protean_sqlalchemy.repository import SqlalchemyModel
 
-from .support.human import HumanModel, Human
-from .support.dog import DogModel, Dog
+from .support.dog import Dog
+from .support.dog import DogModel
+from .support.human import Human
+from .support.human import HumanModel
 
 
 class TestSqlalchemyRepositoryExt:

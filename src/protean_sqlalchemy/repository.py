@@ -1,16 +1,17 @@
 """This module holds the definition of Database connectivity"""
 
+from protean.core import field
 from protean.core.exceptions import ConfigurationError
 from protean.core.repository import BaseAdapter
 from protean.core.repository import BaseConnectionHandler
 from protean.core.repository import BaseModel
-from protean.core.repository import Pagination
 from protean.core.repository import Lookup
-from protean.core import field
+from protean.core.repository import Pagination
 from protean.utils.query import Q
-
+from sqlalchemy import and_
 from sqlalchemy import create_engine
-from sqlalchemy import orm, and_, or_
+from sqlalchemy import or_
+from sqlalchemy import orm
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.ext.declarative import as_declarative

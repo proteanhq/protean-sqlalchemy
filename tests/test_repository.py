@@ -1,6 +1,5 @@
 """Module to test Repository Classes and Functionality"""
 import pytest
-
 from protean.conf import active_config
 from protean.core.exceptions import ValidationError
 from protean.core.repository import repo_factory
@@ -9,7 +8,8 @@ from protean_sqlalchemy.repository import ConnectionHandler
 from protean_sqlalchemy.utils import create_tables
 from protean_sqlalchemy.utils import drop_tables
 
-from .support.dog import DogModel, Dog
+from .support.dog import Dog
+from .support.dog import DogModel
 
 
 class TestConnectionHandler:

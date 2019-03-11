@@ -7,7 +7,8 @@ from protean.utils.query import Q
 from protean_sqlalchemy.repository import SqlalchemyModel
 from protean_sqlalchemy.utils import drop_tables
 
-from .support.human import Human, HumanModel
+from .support.human import Human
+from .support.human import HumanModel
 
 
 class TestFiltersLookups:

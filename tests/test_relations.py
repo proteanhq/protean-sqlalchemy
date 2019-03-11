@@ -1,11 +1,13 @@
 """Module to test Repository extended functionality """
 from protean.core.repository import repo_factory
 
-from protean_sqlalchemy.utils import drop_tables
 from protean_sqlalchemy.utils import create_tables
+from protean_sqlalchemy.utils import drop_tables
 
-from .support.human import RelatedHumanModel, RelatedHuman
-from .support.dog import RelatedDogModel, RelatedDog
+from .support.dog import RelatedDog
+from .support.dog import RelatedDogModel
+from .support.human import RelatedHuman
+from .support.human import RelatedHumanModel
 
 
 class TestRelations:
