@@ -18,3 +18,9 @@ Changelog
 ------------------
 
 * Match with version 0.0.7 of protean
+
+
+0.0.9 (2019-03-11)
+------------------
+
+* Match with version 0.0.9 of protean
