@@ -1,8 +1,7 @@
 """ Define entities of the Human Type """
 from protean.core import field
 from protean.core.entity import Entity
-
-from protean_sqlalchemy.repository import SqlalchemyModel
+from protean.core.repository import BaseModel
 
 
 class Dog(Entity):
@@ -15,7 +14,7 @@ class Dog(Entity):
         return f'<Dog id={self.id}>'
 
 
-class DogModel(SqlalchemyModel):
+class DogModel(BaseModel):
     """Model for the Dog Entity"""
 
     class Meta:
@@ -34,7 +33,7 @@ class RelatedDog(Entity):
         return f'<RelatedDog id={self.id}>'
 
 
-class RelatedDogModel(SqlalchemyModel):
+class RelatedDogModel(BaseModel):
     """Model for the Dog Entity"""
 
     class Meta:

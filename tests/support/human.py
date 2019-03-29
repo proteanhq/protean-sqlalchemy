@@ -4,8 +4,7 @@ from datetime import datetime
 from protean.core import field
 from protean.core.entity import Entity
 from protean.core.field import association
-
-from protean_sqlalchemy.repository import SqlalchemyModel
+from protean.core.repository import BaseModel
 
 
 class Human(Entity):
@@ -24,7 +23,7 @@ class Human(Entity):
         return f'<Human id={self.id}>'
 
 
-class HumanModel(SqlalchemyModel):
+class HumanModel(BaseModel):
     """Model for the Human Entity"""
 
     class Meta:
@@ -46,7 +45,7 @@ class RelatedHuman(Entity):
         return f'<RelatedHuman id={self.id}>'
 
 
-class RelatedHumanModel(SqlalchemyModel):
+class RelatedHumanModel(BaseModel):
     """Model for the Human Entity"""
 
     class Meta:
