@@ -4,7 +4,7 @@
 """
 
 from protean.core import field
-from protean.core.repository.base import BaseModelMeta
+from protean.core.repository import BaseModelMeta
 from protean.core.repository import repo_factory
 
 from sqlalchemy import types as sa_types, Column
@@ -30,19 +30,18 @@ class DeclarativeMeta(sa_dec.DeclarativeMeta, BaseModelMeta):
         # Update the class attrs with the entity attributes
         if cls.__dict__.get('opts_'):
             entity_cls = cls.__dict__['opts_'].entity_cls
-            for field_name, field_obj in entity_cls.\
-                    declared_fields.items():
+            for field_name, field_obj in entity_cls.meta_.declared_fields.items():
 
                 # Map the field if not in attributes
                 if field_name not in cls.__dict__:
                     field_cls = type(field_obj)
                     if field_cls == field.Reference:
-                        related_ent = repo_factory.get_entity(field_obj.to_cls)
+                        related_ent = repo_factory.get_entity(field_obj.to_cls.__name__)
                         if field_obj.via:
                             related_attr = getattr(
                                 related_ent, field_obj.via)
                         else:
-                            related_attr = related_ent.id_field
+                            related_attr = related_ent.meta_.id_field
                         field_name = field_obj.get_attribute_name()
                         field_cls = type(related_attr)
 

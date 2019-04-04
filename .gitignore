@@ -134,3 +134,6 @@ output/*/index.html
 
 # Redis file
 dump.rdb
+
+# SQLite DBs
+*.db

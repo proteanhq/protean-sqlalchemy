@@ -1,75 +1,70 @@
 """Module to test Repository extended functionality """
-from protean.core.repository import repo_factory
-
-from protean_sqlalchemy.utils import create_tables
-from protean_sqlalchemy.utils import drop_tables
+import pytest
 
 from .support.dog import RelatedDog
 from .support.dog import RelatedDogModel
 from .support.human import RelatedHuman
-from .support.human import RelatedHumanModel
 
 
 class TestRelations:
     """Class to test Relation field of Sqlalchemy Repository"""
 
-    @classmethod
-    def setup_class(cls):
-        """ Setup actions for this test case"""
-        repo_factory.register(RelatedHumanModel)
-        repo_factory.register(RelatedDogModel)
+    @pytest.fixture(scope='function', autouse=True)
+    def related_humans(self):
+        """Construct dummy Human objects for queries"""
+        return [
+            RelatedHuman.create(name='John Doe', age='30', weight='13.45',
+                                date_of_birth='01-01-1989'),
+            RelatedHuman.create(name='Greg Manning', age='44', weight='23.45',
+                                date_of_birth='30-07-1975')
+        ]
 
-        # Save the current connection
-        cls.conn = repo_factory.connections['default']
+    @pytest.fixture(scope='function', autouse=True)
+    def default_provider(self):
+        """Construct dummy Human objects for queries"""
+        from protean.core.provider import providers
+        return providers.get_provider()
 
-        # Create all the tables
-        create_tables()
+    @pytest.fixture(scope='function', autouse=True)
+    def conn(self, default_provider):
+        """Construct dummy Human objects for queries"""
+        return default_provider.get_connection()
 
-        # Create the Humans for filtering
-        cls.h1 = RelatedHuman.create(
-            name='John Doe', age='30', weight='13.45',
-            date_of_birth='01-01-1989')
-        cls.h2 = RelatedHuman.create(
-            name='Greg Manning', age='44', weight='23.45',
-            date_of_birth='30-07-1975')
-
-    @classmethod
-    def teardown_class(cls):
-        # Drop all the tables
-        drop_tables()
-
-    def test_create_related(self):
+    def test_create_related(self, related_humans):
         """Test Cceating an entity with a related field"""
-        dog = RelatedDog(name='Jimmy', age=10, owner=self.h1)
+        dog = RelatedDog(name='Jimmy', age=10, owner=related_humans[0])
         dog.save()
 
         assert dog is not None
         assert dog.owner.name == 'John Doe'
 
         # Check if the object is in the repo
-        dog_db = self.conn.query(RelatedDogModel).get(dog.id)
+        dog_db = RelatedDog.get(dog.id)
         assert dog_db is not None
-        assert dog_db.owner_id == self.h1.id
+        assert dog_db.owner_id == related_humans[0].id
 
-    def test_update_related(self):
+    def test_update_related(self, conn, default_provider, related_humans):
         """ Test updating the related field of an entity """
+        RelatedDog.create(name='Jimmy', age=10, owner=related_humans[0])
+
         dog = RelatedDog.query.filter(name='Jimmy').all().first
-        dog.update(owner=self.h2)
+        dog.update(owner=related_humans[1])
 
         # Check if the object is in the repo
-        dog_db = self.conn.query(RelatedDogModel).get(dog.id)
+        dog_model_cls = default_provider.get_model(RelatedDogModel)
+        dog_db = conn.query(dog_model_cls).get(dog.id)
         assert dog_db is not None
-        assert dog_db.owner_id == self.h2.id
+        assert dog_db.owner_id == related_humans[1].id
 
-    def test_has_many(self):
+    def test_has_many(self, related_humans):
         """ Test getting the has many attribute of Relation"""
         # Get the dogs related to the human
-        assert self.h1.dogs is None
+        assert related_humans[0].dogs is None
 
         # Create some dogs
-        RelatedDog.create(name='Dex', age=6, owner=self.h1)
-        RelatedDog.create(name='Lord', age=3, owner=self.h1)
+        RelatedDog.create(name='Dex', age=6, owner=related_humans[0])
+        RelatedDog.create(name='Lord', age=3, owner=related_humans[0])
 
         # Get the dogs related to the human
-        assert self.h1.dogs is not None
-        assert [d.name for d in self.h1.dogs] == ['Dex', 'Lord']
+        assert related_humans[0].dogs is not None
+        assert [d.name for d in related_humans[0].dogs] == ['Dex', 'Lord']

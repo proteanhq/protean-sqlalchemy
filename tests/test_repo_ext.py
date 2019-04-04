@@ -1,28 +1,12 @@
 """Module to test Repository extended functionality """
 from datetime import datetime
 
-from protean.core.repository import repo_factory
-
-from protean_sqlalchemy.repository import SqlalchemyModel
-
 from .support.dog import Dog
-from .support.dog import DogModel
 from .support.human import Human
-from .support.human import HumanModel
 
 
 class TestSqlalchemyRepositoryExt:
     """Class to test Sqlalchemy Repository"""
-
-    @classmethod
-    def setup_class(cls):
-        """ Setup actions for this test case"""
-        repo_factory.register(HumanModel)
-        repo_factory.register(DogModel)
-
-        # Create all the tables
-        for conn in repo_factory.connections.values():
-            SqlalchemyModel.metadata.create_all(conn.bind)
 
     def test_create(self):
         """ Test creating an entity with all field types"""

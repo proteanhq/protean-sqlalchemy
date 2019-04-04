@@ -16,14 +16,14 @@ SECRET_KEY = 'abcdefghijklmn'
 # Flag indicates that we are testing
 TESTING = True
 
-# Define the repositories
-REPOSITORIES = {
+# Define the databases
+DATABASES = {
     'default': {
-        'PROVIDER': 'protean_sqlalchemy.repository',
+        'PROVIDER': 'protean_sqlalchemy.provider.SAProvider',
         'DATABASE_URI': 'sqlite:///:memory:'
     },
     'another_db': {
-        'PROVIDER': 'protean_sqlalchemy.repository',
+        'PROVIDER': 'protean_sqlalchemy.provider.SAProvider',
         'DATABASE_URI': 'sqlite:///:memory:'
     }
 }
