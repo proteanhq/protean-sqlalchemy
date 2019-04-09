@@ -23,8 +23,8 @@ def register_models():
     repo_factory.register(HumanModel)
     repo_factory.register(RelatedHumanModel)
 
-    for entity_name in repo_factory._entity_registry:
-        getattr(repo_factory, entity_name)
+    for entity_name in repo_factory._registry:
+        repo_factory.get_repository(repo_factory._registry[entity_name].entity_cls)
 
     # Now, create all associated tables
     for _, provider in providers._providers.items():
@@ -41,12 +41,15 @@ def run_around_tests():
     """Initialize DogModel with Dict Repo"""
     from protean.core.repository import repo_factory
 
+    from tests.support.dog import Dog, RelatedDog
+    from tests.support.human import Human, RelatedHuman
+
     # A test function will be run at this point
     yield
 
     # Truncate tables
     #   FIXME We are deleting records here, but TRUNCATE is typically much faster
-    repo_factory.Dog.delete_all()
-    repo_factory.RelatedDog.delete_all()
-    repo_factory.Human.delete_all()
-    repo_factory.RelatedHuman.delete_all()
+    repo_factory.get_repository(Dog).delete_all()
+    repo_factory.get_repository(RelatedDog).delete_all()
+    repo_factory.get_repository(Human).delete_all()
+    repo_factory.get_repository(RelatedHuman).delete_all()
