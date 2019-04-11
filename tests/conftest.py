@@ -15,13 +15,13 @@ def register_models():
     from protean.core.repository import repo_factory
     from protean.core.provider import providers
 
-    from tests.support.dog import (DogModel, RelatedDogModel)
-    from tests.support.human import (HumanModel, RelatedHumanModel)
+    from tests.support.dog import Dog, RelatedDog
+    from tests.support.human import Human, RelatedHuman
 
-    repo_factory.register(DogModel)
-    repo_factory.register(RelatedDogModel)
-    repo_factory.register(HumanModel)
-    repo_factory.register(RelatedHumanModel)
+    repo_factory.register(Dog)
+    repo_factory.register(RelatedDog)
+    repo_factory.register(Human)
+    repo_factory.register(RelatedHuman)
 
     for entity_name in repo_factory._registry:
         repo_factory.get_repository(repo_factory._registry[entity_name].entity_cls)
@@ -38,7 +38,7 @@ def register_models():
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
-    """Initialize DogModel with Dict Repo"""
+    """Truncate data after each test run"""
     from protean.core.repository import repo_factory
 
     from tests.support.dog import Dog, RelatedDog

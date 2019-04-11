@@ -2,7 +2,6 @@
 import pytest
 
 from .support.dog import RelatedDog
-from .support.dog import RelatedDogModel
 from .support.human import RelatedHuman
 
 
@@ -51,7 +50,7 @@ class TestRelations:
         dog.update(owner=related_humans[1])
 
         # Check if the object is in the repo
-        dog_model_cls = default_provider.get_model(RelatedDogModel)
+        dog_model_cls = default_provider.get_model(RelatedDog)
         dog_db = conn.query(dog_model_cls).get(dog.id)
         assert dog_db is not None
         assert dog_db.owner_id == related_humans[1].id

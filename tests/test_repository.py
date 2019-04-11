@@ -3,7 +3,6 @@ import pytest
 from protean.core.exceptions import ValidationError
 
 from .support.dog import Dog
-from .support.dog import DogModel
 
 
 class TestSqlalchemyRepository:
@@ -30,7 +29,7 @@ class TestSqlalchemyRepository:
         assert dog.age == 5
 
         # Check if the object is in the repo
-        dog_model_cls = default_provider.get_model(DogModel)
+        dog_model_cls = default_provider.get_model(Dog)
         dog_db = conn.query(dog_model_cls).get(1)
         assert dog_db is not None
         assert dog_db.id == 1
@@ -40,7 +39,7 @@ class TestSqlalchemyRepository:
         with pytest.raises(ValidationError) as e_info:
             Dog.create(name='Johnny', owner='John')
         assert e_info.value.normalized_messages == {
-            'name': ['`dogs` with this `name` already exists.']}
+            'name': ['`Dog` with this `name` already exists.']}
 
     def test_update(self, conn, default_provider):
         """ Test updating an entity in the repository"""
@@ -53,7 +52,7 @@ class TestSqlalchemyRepository:
         assert dog.age == 7
 
         # Check if the object is in the repo
-        dog_model_cls = default_provider.get_model(DogModel)
+        dog_model_cls = default_provider.get_model(Dog)
         dog_db = conn.query(dog_model_cls).get(1)
         assert dog_db is not None
         assert dog_db.id == 1
@@ -94,7 +93,7 @@ class TestSqlalchemyRepository:
 
         # Make sure that the entity is deleted
         # Check if the object is in the repo
-        dog_model_cls = default_provider.get_model(DogModel)
+        dog_model_cls = default_provider.get_model(Dog)
         dog_db = conn.query(dog_model_cls).filter_by(id=1).first()
         assert dog_db is None
 
