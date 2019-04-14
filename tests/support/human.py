@@ -4,7 +4,6 @@ from datetime import datetime
 from protean.core import field
 from protean.core.entity import Entity
 from protean.core.field import association
-from protean.core.repository import BaseModel
 
 
 class Human(Entity):
@@ -22,15 +21,8 @@ class Human(Entity):
     def __repr__(self):
         return f'<Human id={self.id}>'
 
-
-class HumanModel(BaseModel):
-    """Model for the Human Entity"""
-
     class Meta:
-        """ Meta class for model options"""
-        entity = Human
-        model_name = 'humans'
-        bind = 'another_db'
+        provider = 'another_db'
 
 
 class RelatedHuman(Entity):
@@ -43,12 +35,3 @@ class RelatedHuman(Entity):
 
     def __repr__(self):
         return f'<RelatedHuman id={self.id}>'
-
-
-class RelatedHumanModel(BaseModel):
-    """Model for the Human Entity"""
-
-    class Meta:
-        """ Meta class for model options"""
-        entity = RelatedHuman
-        model_name = 'related_humans'

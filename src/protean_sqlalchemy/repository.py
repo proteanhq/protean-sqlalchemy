@@ -1,5 +1,7 @@
 """This module holds the definition of Database connectivity"""
 
+from typing import Any
+
 from protean.core import field
 from protean.core.entity import Entity
 from protean.core.repository import BaseModel
@@ -194,3 +196,27 @@ class SARepository(BaseRepository):
             raise
 
         return del_count
+
+    def raw(self, query: Any, data: Any = None):
+        """Run a raw query on the repository and return entity objects"""
+        assert isinstance(query, str)
+
+        try:
+            results = self.conn.execute(query)
+
+            entity_items = []
+            for item in results:
+                entity = self.model_cls.to_entity(item)
+                entity.state_.mark_retrieved()
+                entity_items.append(entity)
+
+            result = Pagination(
+                page=1,
+                per_page=len(entity_items),
+                total=len(entity_items),
+                items=entity_items)
+        except DatabaseError:
+            self.conn.rollback()
+            raise
+
+        return result

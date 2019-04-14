@@ -1,4 +1,6 @@
 """This module holds the Provider Implementation for SQLAlchemy"""
+from typing import Any
+
 from protean.core.provider.base import BaseProvider
 from protean.core.repository import BaseLookup
 from sqlalchemy import MetaData
@@ -65,6 +67,15 @@ class SAProvider(BaseProvider):
     def get_repository(self, entity_cls):
         """ Return a repository object configured with a live connection"""
         return SARepository(self, entity_cls, self.get_model(entity_cls))
+
+    def raw(self, query: Any, data: Any = None):
+        """Run raw query on Provider"""
+        if data is None:
+            data = {}
+        assert isinstance(query, str)
+        assert isinstance(data, (dict, None))
+
+        return self.get_connection().execute(query, data)
 
 
 operators = {
