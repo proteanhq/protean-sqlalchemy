@@ -1,13 +1,13 @@
 """Module to test Provider Class"""
 from datetime import datetime
 
-from sqlalchemy.engine import ResultProxy
-
 from protean.conf import active_config
+from sqlalchemy.engine import ResultProxy
 
 from protean_sqlalchemy.provider import SAProvider
 
-from .support.dog import Dog, RelatedDog
+from .support.dog import Dog
+from .support.dog import RelatedDog
 from .support.human import RelatedHuman
 
 
