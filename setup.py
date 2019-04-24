@@ -28,7 +28,7 @@ def read(*names, **kwargs):
 
 setup(
     name='protean-sqlalchemy',
-    version='0.0.10',
+    version='0.0.11',
     license='BSD 3-Clause License',
     description='Protean Sqlalachemy Extension',
     long_description='%s\n%s' % (
