@@ -1,4 +1,6 @@
 """This module holds the Provider Implementation for SQLAlchemy"""
+from typing import Any
+
 from protean.core.provider.base import BaseProvider
 from protean.core.repository import BaseLookup
 from sqlalchemy import MetaData
@@ -44,24 +46,36 @@ class SAProvider(BaseProvider):
         """ Close the connection to the Database instance """
         conn.close()
 
-    def get_model(self, model_cls):
-        if model_cls.__name__ in self._model_classes:
-            model_cls = self._model_classes[model_cls.__name__]
+    def get_model(self, entity_cls):
+        """Return a fully-baked Model class for a given Entity class"""
+        model_cls = None
+
+        if entity_cls.meta_.schema_name in self._model_classes:
+            model_cls = self._model_classes[entity_cls.meta_.schema_name]
         else:
             attrs = {
-                key: value for key, value in model_cls.__dict__.items()
-                if key not in ['__dict__', '__weakref__']
+                'entity_cls': entity_cls,
+                'metadata': self._metadata
             }
-            attrs['metadata'] = self._metadata
-            model_cls = type(model_cls.__name__, (SqlalchemyModel, ), attrs)
+            model_cls = type(entity_cls.__name__ + 'Model', (SqlalchemyModel, ), attrs)
 
-            self._model_classes[model_cls.__name__] = model_cls
+            self._model_classes[entity_cls.meta_.schema_name] = model_cls
 
+        # Set Entity Class as a class level attribute for the Model, to be able to reference later.
         return model_cls
 
-    def get_repository(self, model_cls):
+    def get_repository(self, entity_cls):
         """ Return a repository object configured with a live connection"""
-        return SARepository(self, self.get_model(model_cls))
+        return SARepository(self, entity_cls, self.get_model(entity_cls))
+
+    def raw(self, query: Any, data: Any = None):
+        """Run raw query on Provider"""
+        if data is None:
+            data = {}
+        assert isinstance(query, str)
+        assert isinstance(data, (dict, None))
+
+        return self.get_connection().execute(query, data)
 
 
 operators = {

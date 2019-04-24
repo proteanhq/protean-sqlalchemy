@@ -2,16 +2,16 @@
 
     isort:skip_file
 """
+from abc import ABCMeta
 
 from protean.core import field
-from protean.core.repository import BaseModelMeta
 from protean.core.repository import repo_factory
 
 from sqlalchemy import types as sa_types, Column
 from sqlalchemy.ext import declarative as sa_dec
 
 
-class DeclarativeMeta(sa_dec.DeclarativeMeta, BaseModelMeta):
+class DeclarativeMeta(sa_dec.DeclarativeMeta, ABCMeta):
     """ Metaclass for the Sqlalchemy declarative schema """
     field_mapping = {
         field.Auto: sa_types.Integer,
@@ -28,8 +28,8 @@ class DeclarativeMeta(sa_dec.DeclarativeMeta, BaseModelMeta):
 
     def __init__(cls, classname, bases, dict_):
         # Update the class attrs with the entity attributes
-        if cls.__dict__.get('opts_'):
-            entity_cls = cls.__dict__['opts_'].entity_cls
+        if hasattr(cls, 'entity_cls'):
+            entity_cls = cls.entity_cls
             for field_name, field_obj in entity_cls.meta_.declared_fields.items():
 
                 # Map the field if not in attributes

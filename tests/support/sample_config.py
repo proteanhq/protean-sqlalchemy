@@ -20,10 +20,10 @@ TESTING = True
 DATABASES = {
     'default': {
         'PROVIDER': 'protean_sqlalchemy.provider.SAProvider',
-        'DATABASE_URI': 'sqlite:///:memory:'
+        'DATABASE_URI': 'sqlite:///test.db'
     },
     'another_db': {
         'PROVIDER': 'protean_sqlalchemy.provider.SAProvider',
-        'DATABASE_URI': 'sqlite:///:memory:'
+        'DATABASE_URI': 'sqlite:///another_test.db'
     }
 }

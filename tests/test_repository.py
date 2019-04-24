@@ -3,7 +3,6 @@ import pytest
 from protean.core.exceptions import ValidationError
 
 from .support.dog import Dog
-from .support.dog import DogModel
 
 
 class TestSqlalchemyRepository:
@@ -21,7 +20,7 @@ class TestSqlalchemyRepository:
         return default_provider.get_connection()
 
     def test_create(self, conn, default_provider):
-        """ Test creating an entity in the repository"""
+        """Test creating an entity in the repository"""
         # Create the entity and validate the results
         dog = Dog.create(name='Johnny', owner='John')
         assert dog is not None
@@ -30,7 +29,7 @@ class TestSqlalchemyRepository:
         assert dog.age == 5
 
         # Check if the object is in the repo
-        dog_model_cls = default_provider.get_model(DogModel)
+        dog_model_cls = default_provider.get_model(Dog)
         dog_db = conn.query(dog_model_cls).get(1)
         assert dog_db is not None
         assert dog_db.id == 1
@@ -40,10 +39,10 @@ class TestSqlalchemyRepository:
         with pytest.raises(ValidationError) as e_info:
             Dog.create(name='Johnny', owner='John')
         assert e_info.value.normalized_messages == {
-            'name': ['`dogs` with this `name` already exists.']}
+            'name': ['`Dog` with this `name` already exists.']}
 
     def test_update(self, conn, default_provider):
-        """ Test updating an entity in the repository"""
+        """Test updating an entity in the repository"""
         # Update the entity and validate the results
         dog = Dog.create(name='Johnny', owner='John')
 
@@ -53,7 +52,7 @@ class TestSqlalchemyRepository:
         assert dog.age == 7
 
         # Check if the object is in the repo
-        dog_model_cls = default_provider.get_model(DogModel)
+        dog_model_cls = default_provider.get_model(Dog)
         dog_db = conn.query(dog_model_cls).get(1)
         assert dog_db is not None
         assert dog_db.id == 1
@@ -61,14 +60,14 @@ class TestSqlalchemyRepository:
         assert dog.age == 7
 
     def test_filter(self):
-        """ Test reading entities from the repository"""
+        """Test reading entities from the repository"""
         Dog.create(name='Cash', owner='John', age=10)
         Dog.create(name='Boxy', owner='Carry', age=4)
         Dog.create(name='Gooey', owner='John', age=2)
 
         # Filter the entity and validate the results
         dogs = Dog.query.filter(owner='John').\
-            paginate(page=1, per_page=15).\
+            limit(15).\
             order_by(['-age']).all()
 
         assert dogs is not None
@@ -84,7 +83,7 @@ class TestSqlalchemyRepository:
         assert dogs.total == 0
 
     def test_delete(self, conn, default_provider):
-        """ Test deleting an entity from the repository"""
+        """Test deleting an entity from the repository"""
         # Delete the entity and validate the results
         Dog.create(name='Johnny', owner='John')
 
@@ -94,12 +93,12 @@ class TestSqlalchemyRepository:
 
         # Make sure that the entity is deleted
         # Check if the object is in the repo
-        dog_model_cls = default_provider.get_model(DogModel)
+        dog_model_cls = default_provider.get_model(Dog)
         dog_db = conn.query(dog_model_cls).filter_by(id=1).first()
         assert dog_db is None
 
     def test_update_all(self):
-        """ Test updating an entity in the repository"""
+        """Test updating an entity in the repository"""
         # Update the entity and validate the results
         Dog.create(name='Cash', owner='John', age=10)
         Dog.create(name='Boxy', owner='Carry', age=4)
@@ -112,7 +111,7 @@ class TestSqlalchemyRepository:
         assert updated_dogs.total == 2
 
     def test_delete_all(self):
-        """ Test updating an entity in the repository"""
+        """Test updating an entity in the repository"""
         # Update the entity and validate the results
         Dog.create(name='Cash', owner='John', age=10)
         Dog.create(name='Boxy', owner='Carry', age=4)
@@ -122,3 +121,20 @@ class TestSqlalchemyRepository:
 
         remaining_dogs = Dog.query.all()
         assert remaining_dogs.total == 1
+
+    def test_raw(self):
+        """Test raw queries on a Model in the repository"""
+        # Update the entity and validate the results
+        Dog.create(name='Cash', owner='John', age=10)
+        Dog.create(name='Boxy', owner='Carry', age=4)
+        Dog.create(name='Gooey', owner='John', age=2)
+
+        dogs1 = Dog.query.raw('SELECT * FROM dog')
+
+        assert dogs1 is not None
+        assert dogs1.total == 3
+
+        dogs2 = Dog.query.raw('SELECT * FROM dog WHERE owner="John"')
+        assert dogs2.total == 2
+        dog_ages = [d.age for d in dogs2.items]
+        assert dog_ages == [10, 2]
