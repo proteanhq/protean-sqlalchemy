@@ -6,7 +6,7 @@ from protean.core import field
 from protean.core.entity import Entity
 from protean.core.repository import BaseModel
 from protean.core.repository import BaseRepository
-from protean.core.repository import Pagination
+from protean.core.repository import ResultSet
 from protean.utils.query import Q
 from sqlalchemy import and_
 from sqlalchemy import or_
@@ -72,8 +72,8 @@ class SARepository(BaseRepository):
 
         return func(*params)
 
-    def filter(self, criteria: Q, page: int = 1, per_page: int = 10,
-               order_by: list = ()) -> Pagination:
+    def filter(self, criteria: Q, offset: int = 0, limit: int = 10,
+               order_by: list = ()) -> ResultSet:
         """ Filter objects from the sqlalchemy database """
         qs = self.conn.query(self.model_cls)
 
@@ -90,21 +90,16 @@ class SARepository(BaseRepository):
             else:
                 order_cols.append(col)
         qs = qs.order_by(*order_cols)
-
-        # apply limit and offset filters only if per_page is not None
-        if per_page > 0:
-            offset = (page - 1) * per_page
-            qs = qs.limit(per_page).offset(offset)
+        qs = qs.limit(limit).offset(offset)
 
         # Return the results
         try:
             items = qs.all()
-            total = qs.count() if per_page > 0 else len(items)
-            result = Pagination(
-                page=page,
-                per_page=per_page,
-                total=total,
-                items=items)
+            result = ResultSet(
+                offset=offset,
+                limit=limit,
+                total=qs.count(),
+                items=items[offset: offset + limit])
         except DatabaseError:
             self.conn.rollback()
             raise
@@ -210,9 +205,9 @@ class SARepository(BaseRepository):
                 entity.state_.mark_retrieved()
                 entity_items.append(entity)
 
-            result = Pagination(
-                page=1,
-                per_page=len(entity_items),
+            result = ResultSet(
+                offset=0,
+                limit=len(entity_items),
                 total=len(entity_items),
                 items=entity_items)
         except DatabaseError:

@@ -67,7 +67,7 @@ class TestSqlalchemyRepository:
 
         # Filter the entity and validate the results
         dogs = Dog.query.filter(owner='John').\
-            paginate(page=1, per_page=15).\
+            limit(15).\
             order_by(['-age']).all()
 
         assert dogs is not None
